@@ -1,0 +1,13 @@
+node_modules
+app/node_modules
+.prettierrc
+.eslint*
+.babelrc
+.cache
+app/dist
+server.key
+server.cert
+.cache/
+coverage/
+.vscode/
+.env

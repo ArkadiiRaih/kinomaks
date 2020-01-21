@@ -1,0 +1,21 @@
+{
+  "name": "kinomaks_back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "predeploy": "cd app && npm run predeploy",
+    "start": "npm run predeploy && node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "cron": "^1.7.2",
+    "express": "^4.17.1",
+    "form-data": "^3.0.0",
+    "pg": "^7.17.1",
+    "request": "^2.88.0"
+  }
+}

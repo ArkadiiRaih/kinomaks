@@ -1,0 +1,47 @@
+{
+  "name": "test_vk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "homepage": "",
+  "scripts": {
+    "dev": "parcel src/index.html --https",
+    "predeploy": "parcel build src/index.html --public-url /public/app --out-dir ../public/app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "ArkadiiRaih",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.7.7",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/preset-env": "^7.7.7",
+    "@babel/preset-react": "^7.7.4",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.17.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "node-sass": "^4.13.0",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^1.19.1",
+    "sass": "^1.24.4"
+  },
+  "dependencies": {
+    "@vkontakte/icons": "^1.13.0",
+    "@vkontakte/vk-connect": "^1.7.1",
+    "@vkontakte/vkui": "^3.0.0-alpha.3",
+    "core-js": "^3.6.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions"
+  ]
+}
