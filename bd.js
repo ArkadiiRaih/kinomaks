@@ -3,8 +3,7 @@ const { calcAttempts } = require("./utilities");
 
 // Connecting to db
 const pgConfig = Object.freeze({
-  dbURL:
-    "postgres://pfplqexwjevrhh:80f9322a7a0a8388d9b389266153dec941c0d4f8b52f08884f553c2c37ca1173@ec2-54-247-72-30.eu-west-1.compute.amazonaws.com:5432/dcmmssjnh37l1n"
+  dbURL: ""
 });
 
 const client = new Client({
