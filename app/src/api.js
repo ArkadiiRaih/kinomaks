@@ -18,7 +18,7 @@ const fetchAttempts = async user => {
   }
 };
 
-const getUserToken = async () => {
+const fetchUserToken = async () => {
   try {
     const { access_token } = await connect.sendPromise("VKWebAppGetAuthToken", {
       app_id: 7257506,
@@ -30,7 +30,7 @@ const getUserToken = async () => {
   }
 };
 
-const getUserData = async (uid, access_token) => {
+const fetchUserData = async (uid, access_token) => {
   const data = await connect
     .sendPromise("VKWebAppCallAPIMethod", {
       method: "execute.getUserData",
@@ -46,43 +46,54 @@ const getUserData = async (uid, access_token) => {
 };
 
 const getPrize = async uid => {
-  const prize = await fetch(`/app/api/v1/getPrize/${uid}`, {
-    method: "get",
-    headers: {
-      Accept: "application/json"
-    }
-  })
-    .then(data => data.json())
-    .catch(err => console.error(err));
-  return prize;
+  try {
+    const prize = await fetch(`/app/api/v1/getPrize/${uid}`, {
+      method: "get",
+      headers: {
+        Accept: "application/json"
+      }
+    }).then(data => data.json());
+    return prize;
+  } catch (e) {
+    console.log(e);
+    return {};
+  }
 };
 
 const getUploadUrl = async token => {
-  const { upload_url } = await connect
-    .sendPromise("VKWebAppCallAPIMethod", {
-      method: "photos.getUploadServer",
-      request_id: "getUploadUrl",
-      params: {
-        group_id: 190154431,
-        album_id: 269523539,
-        v: "5.103",
-        access_token: token
-      }
-    })
-    .then(data => data.response);
-  return upload_url;
+  try {
+    const { upload_url } = await connect
+      .sendPromise("VKWebAppCallAPIMethod", {
+        method: "photos.getUploadServer",
+        request_id: "getUploadUrl",
+        params: {
+          group_id: 190154431,
+          album_id: 269523539,
+          v: "5.103",
+          access_token: token
+        }
+      })
+      .then(data => data.response);
+    return upload_url;
+  } catch (e) {
+    return {};
+  }
 };
 
 const getShareData = async (prize, upload_url) => {
-  const shareData = await fetch("/app/api/v1/getShareForm", {
-    headers: {
-      Accept: "image/png",
-      "Content-Type": "application/json"
-    },
-    method: "post",
-    body: JSON.stringify(Object.assign(prize, { upload_url }))
-  }).then(blob => blob.json());
-  return shareData;
+  try {
+    const shareData = await fetch("/app/api/v1/getShareForm", {
+      headers: {
+        Accept: "image/png",
+        "Content-Type": "application/json"
+      },
+      method: "post",
+      body: JSON.stringify(Object.assign(prize, { upload_url }))
+    }).then(blob => blob.json());
+    return shareData;
+  } catch (e) {
+    return {};
+  }
 };
 
 const uploadPhoto = async (shareData, token) => {
@@ -104,12 +115,30 @@ const uploadPhoto = async (shareData, token) => {
   return photoData;
 };
 
+const setReposted = async uid => {
+  const fetchedAttempts = await fetch(
+    `app/api/v1/setReposted/${uid}`
+  ).then(data => data.json());
+  return fetchedAttempts.attempts;
+};
+
+const vkRepost = async (owner_id, id) => {
+  await connect.sendPromise("VKWebAppShowWallPostBox", {
+    message: `Неожиданный и приятный подарок от КИНОМАКС! 
+
+    Для вас подарки тоже есть: билеты в кино, вкусные наборы из кинобара, стикеры и другие призы — все раздают в приложении`,
+    attachments: `photo${owner_id}_${id},https://vk.com/app7257506`
+  });
+};
+
 export default {
   fetchAttempts,
-  getUserToken,
-  getUserData,
+  fetchUserToken,
+  fetchUserData,
   getPrize,
   getUploadUrl,
   getShareData,
-  uploadPhoto
+  uploadPhoto,
+  setReposted,
+  vkRepost
 };

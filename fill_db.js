@@ -45,7 +45,7 @@ function makeQuery({ title, text, img_url, quantity, locations }) {
   };
 }
 
-const { client } = require("./bd");
+const { client } = require("./db");
 
 function fillPrizes(client) {
   realPrizes.map(prize => {

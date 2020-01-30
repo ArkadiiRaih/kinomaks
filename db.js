@@ -1,18 +1,19 @@
 const { Client } = require("pg");
 const { calcAttempts } = require("./utilities");
 
-// Connecting to db
+// Set config
 const pgConfig = Object.freeze({
   dbURL: ""
 });
 
+// create client
 const client = new Client({
   connectionString: pgConfig.dbURL,
   ssl: true
 });
 
+// connect to database
 client.connect();
-// **
 
 async function getUserByUid(uid) {
   const query = {
@@ -27,25 +28,6 @@ async function getUserByUid(uid) {
     return null;
   }
 }
-
-async function getAttempts(uid) {
-  const query = {
-    text: `SELECT attempts from users 
-    WHERE uid=$1;`,
-    values: [uid]
-  };
-  const { rows } = await client.query(attempts);
-  return res.rows[0];
-}
-
-const getUserAttempts = async ({ uid, liked, subscribed }) => {
-  const user = await getUserByUid(uid);
-  let { attempts } = user;
-  if (user) {
-    attempts = updateUser({ uid, liked, subscribed }, user);
-  }
-  return attempts;
-};
 
 async function updateUser({ uid, liked, subscribed }, user) {
   const {
@@ -95,8 +77,8 @@ async function setReposted(uid) {
   };
   try {
     const { rows } = client.query(query);
-    const { user } = rows[0];
-    return user.attempts;
+    const { attempts } = rows[0].user;
+    return attempts;
   } catch (e) {
     return null;
   }
@@ -105,8 +87,8 @@ async function setReposted(uid) {
 function createUser({ uid, subscribed, liked, location }) {
   const reposted = false,
     attempts_all = 0,
-    attempts = calcAttempts({ liked, subscribed });
-  won = false;
+    attempts = calcAttempts({ liked, subscribed }),
+    won = false;
 
   const query = {
     text: `INSERT INTO
@@ -125,6 +107,23 @@ function createUser({ uid, subscribed, liked, location }) {
   };
   client.query(query).catch(err => console.error(err));
   return attempts;
+}
+
+async function updateUsers() {
+  const querySelect = {
+    text: "SELECT uid, liked, reposted, subscribed from users",
+    values: []
+  };
+  const { rows } = await client.query(querySelect);
+  for (let row of rows) {
+    const queryUpdate = makeQueryUpdate(row);
+    try {
+      await client.query(queryUpdate);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return true;
 }
 
 function addWinner(user_id, prize_id) {
@@ -147,25 +146,6 @@ function setWon(uid) {
   client.query(query);
 }
 
-function decPrize(title) {
-  const query = {
-    text: `UPDATE prizes
-    SET quantity = quantity - 1
-    WHERE title=$1`,
-    values: [title]
-  };
-  client.query(query);
-}
-
-async function getPrize(title) {
-  const query = {
-    text: `SELECT * FROM prizes WHERE title=$1`,
-    values: [title]
-  };
-  const { rows } = await client.query(query);
-  return rows;
-}
-
 function useAttempt(uid) {
   const query = {
     text: `UPDATE users
@@ -177,7 +157,7 @@ function useAttempt(uid) {
   client.query(query);
 }
 
-async function getWinners(cb) {
+async function getWinners() {
   const query = {
     text: `SELECt * FROM winners 
   JOIN users ON users.id = winners.user_id
@@ -188,14 +168,51 @@ async function getWinners(cb) {
   return rows;
 }
 
+async function getPrizes() {
+  const query = {
+    text: `SELECT * FROM prizes WHERE quantity>0`,
+    values: []
+  };
+  const { rows } = await client.query(query);
+  return rows;
+}
+
+async function updatePrizes(pid) {
+  const queryUpdate = makeQueryUpdatePrizes(pid);
+  return await client.query(queryUpdate);
+}
+
+function makeQueryUpdate({ uid, liked, reposted, subscribed }) {
+  const attempts = calcAttempts({ liked, reposted, subscribed });
+  return {
+    text: `UPDATE users
+    SET attempts=$1,
+    won=$2
+    WHERE uid=$3 RETURNING *`,
+    values: [attempts, false, uid]
+  };
+}
+
+function makeQueryUpdatePrizes(id) {
+  return {
+    text: `UPDATE prizes
+    SET quantity = quantity - 1
+    WHERE id=$1 RETURNING *`,
+    values: [id]
+  };
+}
+
 module.exports = {
   createUser,
   getUserByUid,
-  getAttempts,
   updateUser,
   setReposted,
   setWon,
   addWinner,
   useAttempt,
-  client
+  client,
+  getPrizes,
+  updatePrizes,
+  updateUsers,
+  getWinners
 };

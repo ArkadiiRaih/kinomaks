@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import connect from "@vkontakte/vk-connect";
 import View from "@vkontakte/vkui/dist/components/View/View";
-import "@vkontakte/vkui/dist/vkui.css";
 import Panel from "@vkontakte/vkui/dist/components/Panel/Panel";
 import PopoutWrapper from "@vkontakte/vkui/dist/components/PopoutWrapper/PopoutWrapper";
+import PanelSpinner from "@vkontakte/vkui/dist/components/PanelSpinner/PanelSpinner";
+import Div from "@vkontakte/vkui/dist/components/Div/Div";
+import "@vkontakte/vkui/dist/vkui.css";
+
+import api from "./api";
 import FirstPage from "./FirstPage";
 import AnimationPage from "./AnimationPage";
 import PrizePage from "./PrizePage";
 import LastPage from "./LastPage";
-import PanelSpinner from "@vkontakte/vkui/dist/components/PanelSpinner/PanelSpinner";
-import api from "./api";
-
 import "./style/style.scss";
-import Div from "@vkontakte/vkui/dist/components/Div/Div";
 
 const App = () => {
   const [activePanel, setActivePanel] = useState("start-page");
   const [prize, setPrize] = useState(null);
-  const [attempts, setAttempts] = useState();
+  const [attempts, setAttempts] = useState(0);
   const [popout, setPopout] = useState(null);
   const [userData, setUserData] = useState({});
   const [token, setToken] = useState("");
@@ -33,10 +33,11 @@ const App = () => {
 
   useEffect(() => {
     fetchData();
+
     async function fetchData() {
-      const token = await api.getUserToken();
-      const { uid } = userData;
-      let { liked, subscribed } = await api.getUserData(uid, token);
+      console.log(userData);
+      const token = await api.fetchUserToken();
+      let { liked, subscribed } = await api.fetchUserData(userData.uid, token);
       liked = liked || 0;
       const user = Object.assign(userData, { liked, subscribed });
       const fetchedAttempts = await api.fetchAttempts(user);
@@ -67,27 +68,16 @@ const App = () => {
       const upload_url = await api.getUploadUrl(token);
       const shareData = await api.getShareData(prize, upload_url);
       const { owner_id, id } = await api.uploadPhoto(shareData, token);
-
-      const repostResp = await connect.sendPromise("VKWebAppShowWallPostBox", {
-        message: `Неожиданный и приятный подарок от КИНОМАКС! 
-  
-        Для вас подарки тоже есть: билеты в кино, вкусные наборы из кинобара, стикеры и другие призы — все раздают в приложении`,
-        attachments: `photo${owner_id}_${id},https://vk.com/app7257506`
-      });
-      const fetchedAttempts = await fetch(
-        `app/api/v1/setReposted/${userData.uid}`
-      ).then(data => {
-        console.log(data);
-        return data.json();
-      });
-      setAttempts(fetchedAttempts.attempts);
+      await api.vkRepost(owner_id, id);
+      const fetchedAttempts = await api.setReposted(userData.uid);
+      setAttempts(fetchedAttempts);
     } catch (e) {
       return;
     }
   };
+
   async function updateData() {
-    const { uid } = userData;
-    let { liked, subscribed } = await api.getUserData(uid, token);
+    let { liked, subscribed } = await api.fetchUserData(userData.uid, token);
     liked = liked || 0;
     const user = Object.assign(userData, { liked, subscribed });
     const fetchedAttempts = await api.fetchAttempts(user);
@@ -109,10 +99,10 @@ const App = () => {
       <PopoutWrapper v="center" h="center">
         <Div onClose={closePopout} className="popout">
           <div className="popout__text">
-            <p className="text text_l">У вас закончились попытки</p>
+            <p className="text text_l">"У вас закончились попытки"</p>
           </div>
           <div className="popout__text">
-            <p className="text text_l">Хотите получить еще?</p>
+            <p className="text text_l">"Хотите получить еще?"</p>
           </div>
           <button
             className="button"
@@ -157,11 +147,5 @@ const App = () => {
     </View>
   );
 };
-
-function compose2(fn1, fn2) {
-  return function composed(v) {
-    return fn1(fn2(v));
-  };
-}
 
 export default App;

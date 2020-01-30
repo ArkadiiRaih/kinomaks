@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
-import api from "./api";
+import React from "react";
 
-const FirstPage = ({ handleClick, attempts, onStart, user }) => {
+const FirstPage = ({ handleClick, attempts }) => {
   return (
     <div className="wrapper" align="center">
       <div align="center" className="layout page">
